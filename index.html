@@ -292,61 +292,66 @@
   }
 
   // 6) Share Flex message
-  async function shareTarget() {
-    if (!meProfile) await initializeLiff();
-    if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
-    const [lat, lng] = myCoords;
+async function shareTarget() {
+  if (!meProfile) await initializeLiff();
+  if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
+  const [lat, lng] = myCoords;
 
-    const flexMessage = {
-      type: 'flex',
-      altText: 'ตำแหน่งของฉัน',
-      contents: {
-        type: 'bubble',
-        hero: {
-          type: 'image',
-          url: meProfile.pictureUrl,
-          size: 'full',
-          aspectRatio: '1:1',
-          aspectMode: 'cover'
-        },
-        body: {
-          type: 'box',
-          layout: 'vertical',
-          contents: [
-            { type: 'text', text:`${meProfile.displayName} อยู่ที่นี่`, weight:'bold', size:'md', margin:'md' },
-            { type: 'text', text:`Latitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}`, wrap:true, margin:'sm' }
-
-          ]
-        },
-        footer: {
-          type: 'box',
-          layout: 'vertical',
-          spacing: 'sm',
-          contents: [
-            {
-              type:'button',
-              style:'primary',
-              action:{
-                type:'uri',
-                label:'นำทางไปยังตำแหน่งนี้',
-                uri:`https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination=${lat},${lng}`
-              }
+  const flexMessage = {
+    type: 'flex',
+    altText: 'ตำแหน่งของฉัน',
+    contents: {
+      type: 'bubble',
+      hero: {
+        type: 'image',
+        url: meProfile.pictureUrl,
+        size: 'full',
+        aspectRatio: '1:1',
+        aspectMode: 'cover'
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          { type: 'text', text:`${meProfile.displayName} อยู่ที่นี่`, weight:'bold', size:'md', margin:'md' },
+          { type: 'text', text:`Latitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}`, wrap:true, margin:'sm' }
+        ]
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type:'button',
+            style:'primary',
+            action:{
+              type:'uri',
+              label:'นำทางไปยังตำแหน่งนี้',
+              // <-- omit origin so Maps uses your device location automatically
+              uri: `https://www.google.com/maps/dir/?api=1`
+                 + `&destination=${lat},${lng}`
             }
-          ]
-        }
+          }
+        ]
       }
-    };
-
-    if (liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
-      try { await liff.shareTargetPicker([flexMessage]); return; }
-      catch (e) { console.warn(e); }
     }
-    window.open(
-      'https://social-plugins.line.me/lineit/share?url=' +
-      encodeURIComponent(`https://maps.google.com?q=${lat},${lng}`),
-      '_blank'
-    );
+  };
+
+  if (liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
+    try { await liff.shareTargetPicker([flexMessage]); return; }
+    catch (e) { console.warn(e); }
   }
+
+  // fallback
+  window.open(
+    `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(
+       `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    )}`,
+    '_blank'
+  );
+}
+
 
   // 7) DOM Ready
   $(async () => {
