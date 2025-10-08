@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>THUNDER ⚡ EXPRESS</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>THUNDER ⚡ EXPRESS</title>
+
 
     <!-- jquery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -91,288 +92,329 @@
 </head>
 
 <body>
-  <div class="app-container">
-    <!-- HEADER -->
-    <div class="header">
-          <h2 class="text-3xl font-semibold text-white-700"> THUNDER ⚡ EXPRESS</h2>
-      <div class="user-status mt-4">
-        USER : <div class="avatar"></div>
-        <span class="display-name">Sanwithz Webapp</span>
-      </div>
-    </div>
+  <div class="app-container">
+    <!-- HEADER -->
+    <div class="header">
+          <h2 class="text-3xl font-semibold text-white-700"> THUNDER ⚡ EXPRESS</h2>
+      <div class="user-status mt-4">
+        USER : <div class="avatar"></div>
+        <span class="display-name">Sanwithz Webapp</span>
+      </div>
+    </div>
 
-    <!-- MAP & ACTIONS -->
-    <div class="map-card">
-      <div id="map"></div>
-      <div class="action-buttons">
-        <button id="btn-share" class="action-btn text-sm">
-          <i class="fas fa-rocket"></i>แชร์พิกัดของฉัน
-        </button>
-        <button id="btn-picker" class="action-btn text-sm">
-          <i class="fas fa-share-alt"></i>แชร์ผ่าน LINE
-        </button>
-        <button id="btn-refresh" class="action-btn" style="display:none">
-          <i class="fas fa-sync-alt"></i>รีเฟรชโปรไฟล์
-        </button>
-      </div>
-    </div>
+    <!-- MAP & ACTIONS -->
+    <div class="map-card">
+      <div id="map"></div>
+      <div class="action-buttons">
+        <button id="btn-share" class="action-btn text-sm">
+          <i class="fas fa-rocket"></i>แชร์พิกัดของฉัน
+        </button>
+        <button id="btn-picker" class="action-btn text-sm">
+          <i class="fas fa-share-alt"></i>แชร์ผ่าน LINE
+        </button>
+        <button id="btn-refresh" class="action-btn" style="display:none">
+          <i class="fas fa-sync-alt"></i>รีเฟรชโปรไฟล์
+        </button>
+      </div>
+    </div>
 
 
-  
-  <!-- FRIEND LIST -->
+  
+  <!-- FRIEND LIST -->
 <div class="section-title">
-  <span>🧭</span>
-  <span>เพื่อนใกล้ฉัน มีใครบ้าง</span>
+  <span>🧭</span>
+  <span>เพื่อนใกล้ฉัน มีใครบ้าง</span>
 </div>
 <ul class="friend-list"></ul>
 
-  </div>
-  
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  </div>
+  
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
-    <script>
-  const liffId     = "2007533959-l0B390og";
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw_jCAwxTFErgt9H3aul4_gL4Mq-vIDvGBOOotjWAyOS9LRoodD7X2Z2VRbqIUSPaOp/exec";
-  let map, meProfile, myCoords;
-  const friendMarkers = [];
+    <script>
+  const liffId     = "2007533959-l0B390og";
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbw_jCAwxTFErgt9H3aul4_gL4Mq-vIDvGBOOotjWAyOS9LRoodD7X2Z2VRbqIUSPaOp/exec";
+  let map, meProfile, myCoords;
+  const friendMarkers = [];
 
-  // 1) Initialize LIFF & get profile
-  async function initializeLiff() {
-    await liff.init({ liffId, withLoginOnExternalBrowser: true });
-    if (!liff.isLoggedIn()) return liff.login();
-    meProfile = await liff.getProfile();
-    $('.avatar').css('background-image', `url(${meProfile.pictureUrl})`);
-    $('.display-name').text(meProfile.displayName);
-  }
+  // 1) Initialize LIFF & get profile
+  async function initializeLiff() {
+    await liff.init({ liffId, withLoginOnExternalBrowser: true });
+    if (!liff.isLoggedIn()) return liff.login();
+    meProfile = await liff.getProfile();
+    $('.avatar').css('background-image', `url(${meProfile.pictureUrl})`);
+    $('.display-name').text(meProfile.displayName);
+  }
 
-  // 2) Initialize map after geolocation
-  function initMap() {
-    map = L.map('map');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'' }).addTo(map);
+  // 2) Initialize map after geolocation
+  function initMap() {
+    map = L.map('map');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'' }).addTo(map);
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        myCoords = [pos.coords.latitude, pos.coords.longitude];
-        map.setView(myCoords, 15);
-        L.circleMarker(myCoords, {
-          radius:8, fillColor:'#007AFF', color:'#fff', weight:2, fillOpacity:0.9
-        }).addTo(map).bindPopup('คุณอยู่ที่นี่').openPopup();
-        loadFriendsOnMap();
-      }, () => {
-        map.setView([13.7563,100.5018],13);
-        loadFriendsOnMap();
-      });
-    } else {
-      map.setView([13.7563,100.5018],13);
-      loadFriendsOnMap();
-    }
-  }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        myCoords = [pos.coords.latitude, pos.coords.longitude];
+        map.setView(myCoords, 15);
+        L.circleMarker(myCoords, {
+          radius:8, fillColor:'#007AFF', color:'#fff', weight:2, fillOpacity:0.9
+        }).addTo(map).bindPopup('คุณอยู่ที่นี่').openPopup();
+        loadFriendsOnMap();
+      }, () => {
+        map.setView([13.7563,100.5018],13);
+        loadFriendsOnMap();
+      });
+    } else {
+      map.setView([13.7563,100.5018],13);
+      loadFriendsOnMap();
+    }
+  }
 
-  // 3) Load all friends from Sheet
-  async function loadFriendsOnMap() {
-    try {
-      $.LoadingOverlay("show");
-      const res     = await fetch(WEBAPP_URL);
-      const friends = await res.json();
-      friends.forEach(f => appendFriend(f));
-    } catch (e) {
-      console.error('load failed', e);
-      Swal.fire('Error', 'ดึงข้อมูลไม่สำเร็จ', 'error');
-    } finally {
-      $.LoadingOverlay("hide");
-    }
-  }
+  // 3) Load all friends from Sheet
+  async function loadFriendsOnMap() {
+    try {
+      $.LoadingOverlay("show");
+      const res     = await fetch(WEBAPP_URL);
+      const friends = await res.json();
+      friends.forEach(f => appendFriend(f));
+    } catch (e) {
+      console.error('load failed', e);
+      Swal.fire('Error', 'ดึงข้อมูลไม่สำเร็จ', 'error');
+    } finally {
+      $.LoadingOverlay("hide");
+    }
+  }
 
-  // 4) Append friend to list & map
-  function appendFriend({ id, name, pictureUrl, timestamp, lat, lng }) {
-    const $list = $('.friend-list');
-    const $item = $(`
-      <div class="friend-item" data-id="${id}">
-        <div class="friend-avatar" style="background-image:url('${pictureUrl}')"></div>
-        <div class="friend-info">
-          <div class="friend-name">${name}</div>
-          <div class="friend-time">${new Date(timestamp).toLocaleString('th-TH')}</div>
-        </div>
-        <button class="navigate-btn text-sm">
-          <i class="fas fa-map-marker-alt"></i> นำทาง
-        </button>
-        <button class="delete-btn text-sm bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded ml-2">
-          <i class="fas fa-trash-alt"></i> ลบ
-        </button>
-      </div>
-    `);
-    $list.prepend($item);
+  // 4) Append friend to list & map
+  // <!-- UPDATED 1: Added 'placeName' to the function parameters -->
+  function appendFriend({ id, name, pictureUrl, timestamp, lat, lng, placeName }) {
+    const $list = $('.friend-list');
+    // <!-- UPDATED 2: Use the custom placeName if it exists, otherwise use the user's name -->
+    const displayName = placeName || name;
+    const $item = $(`
+      <div class="friend-item" data-id="${id}">
+        <div class="friend-avatar" style="background-image:url('${pictureUrl}')"></div>
+        <div class="friend-info">
+          <!-- UPDATED 3: Display the location name and who shared it -->
+          <div class="friend-name">${displayName}</div>
+          ${placeName ? `<div class="text-xs text-gray-500 -mt-1">แชร์โดย: ${name}</div>` : ''}
+          <div class="friend-time">${new Date(timestamp).toLocaleString('th-TH')}</div>
+        </div>
+        <button class="navigate-btn text-sm">
+          <i class="fas fa-map-marker-alt"></i> นำทาง
+        </button>
+        <button class="delete-btn text-sm bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded ml-2">
+          <i class="fas fa-trash-alt"></i> ลบ
+        </button>
+      </div>
+    `);
+    $list.prepend($item);
 
-    // Navigate
-    $item.find('.navigate-btn').click(() => {
-      if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
-      const [myLat, myLng] = myCoords;
-      const url = `https://www.google.com/maps/dir/?api=1`
-                + `&origin=${myLat},${myLng}`
-                + `&destination=${lat},${lng}`;
-      window.open(url,'_blank');
-    });
+    // Navigate
+    $item.find('.navigate-btn').click(() => {
+      if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
+      const [myLat, myLng] = myCoords;
+      const url = `https://www.google.com/maps/dir/?api=1`
+                + `&origin=${myLat},${myLng}`
+                + `&destination=${lat},${lng}`;
+      window.open(url,'_blank');
+    });
 
-    // Delete
-    $item.find('.delete-btn').click(async () => {
-      const result = await Swal.fire({
-        title: `ลบ ${name}?`,
-        icon: 'warning',
+    // Delete
+    $item.find('.delete-btn').click(async () => {
+      const result = await Swal.fire({
+        // <!-- UPDATED 4: Show the correct name in the delete confirmation -->
+        title: `ลบ ${displayName}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'ใช่, ลบเลย',
+        cancelButtonText: 'ยกเลิก'
+      });
+      if (!result.isConfirmed) return;
+
+      try {
+        $.LoadingOverlay("show");
+        const res  = await fetch(WEBAPP_URL, {
+          method:'POST',
+          headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({ action:'delete', id })
+        });
+        const json = await res.json();
+        if (json.status === 'deleted') {
+          $item.remove();
+          const idx = friendMarkers.findIndex(m => m.id === id);
+          if (idx > -1) {
+            map.removeLayer(friendMarkers[idx].marker);
+            friendMarkers.splice(idx,1);
+          }
+          Swal.fire('ลบแล้ว!', '', 'success');
+        } else {
+          Swal.fire('ไม่พบข้อมูล', '', 'info');
+        }
+      } catch (e) {
+        console.error('delete failed', e);
+        Swal.fire('Error','ลบไม่สำเร็จ','error');
+      } finally {
+        $.LoadingOverlay("hide");
+      }
+    });
+
+    // Map marker
+    const icon   = L.icon({ iconUrl:pictureUrl, iconSize:[40,40], iconAnchor:[20,20], className:'friend-marker' });
+    const marker = L.marker([lat,lng],{icon})
+                    .addTo(map)
+                    // <!-- UPDATED 5: Update the map pin popup -->
+                    .bindPopup(`<b>${displayName}</b><br>${placeName ? `แชร์โดย: ${name}<br>` : ''}${new Date(timestamp).toLocaleString('th-TH')}`);
+    friendMarkers.push({ id, marker });
+  }
+
+  // 5) Share & Save
+  // <!-- UPDATED 6: This function now accepts the 'placeName' from the prompt -->
+  async function shareAndSave(placeName) {
+    if (!meProfile) await initializeLiff();
+    if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
+    const [lat, lng] = myCoords;
+    // <!-- UPDATED 7: Add 'placeName' to the data sent to your backend -->
+    const payload    = { 
+        name: meProfile.displayName, 
+        pictureUrl: meProfile.pictureUrl, 
+        lat, 
+        lng, 
+        placeName 
+    };
+
+    try {
+      $.LoadingOverlay("show");
+      const res  = await fetch(WEBAPP_URL, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (json.status !== 'success') throw json;
+      // <!-- UPDATED 8: Pass the new 'placeName' to the appendFriend function -->
+      appendFriend({
+        id: json.id,
+        name: meProfile.displayName,
+        pictureUrl: meProfile.pictureUrl,
+        timestamp: new Date(),
+        lat, 
+        lng,
+        placeName
+      });
+      Swal.fire('สำเร็จ!', 'แชร์พิกัดเรียบร้อย', 'success');
+    } catch (e) {
+      console.error('share failed', e);
+      Swal.fire('Error','บันทึกไม่สำเร็จ','error');
+    } finally {
+      $.LoadingOverlay("hide");
+    }
+  }
+
+  // <!-- NEW FUNCTION: Prompt the user for a place name -->
+  async function promptForPlaceName() {
+    const { value: placeName } = await Swal.fire({
+        title: 'ระบุชื่อสถานที่',
+        input: 'text',
+        inputLabel: 'กรุณาใส่ชื่อสถานที่ที่คุณต้องการปักหมุด',
+        inputPlaceholder: 'เช่น บ้านของฉัน, ที่ทำงาน, ร้านกาแฟโปรด',
         showCancelButton: true,
-        confirmButtonText: 'ใช่, ลบเลย',
-        cancelButtonText: 'ยกเลิก'
-      });
-      if (!result.isConfirmed) return;
-
-      try {
-        $.LoadingOverlay("show");
-        const res  = await fetch(WEBAPP_URL, {
-          method:'POST',
-          headers:{'Content-Type':'text/plain'},
-          body: JSON.stringify({ action:'delete', id })
-        });
-        const json = await res.json();
-        if (json.status === 'deleted') {
-          $item.remove();
-          const idx = friendMarkers.findIndex(m => m.id === id);
-          if (idx > -1) {
-            map.removeLayer(friendMarkers[idx].marker);
-            friendMarkers.splice(idx,1);
-          }
-          Swal.fire('ลบแล้ว!', '', 'success');
-        } else {
-          Swal.fire('ไม่พบข้อมูล', '', 'info');
+        confirmButtonText: 'แชร์เลย!',
+        cancelButtonText: 'ยกเลิก',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'คุณต้องใส่ชื่อสถานที่!'
+            }
         }
-      } catch (e) {
-        console.error('delete failed', e);
-        Swal.fire('Error','ลบไม่สำเร็จ','error');
-      } finally {
-        $.LoadingOverlay("hide");
-      }
     });
 
-    // Map marker
-    const icon   = L.icon({ iconUrl:pictureUrl, iconSize:[40,40], iconAnchor:[20,20], className:'friend-marker' });
-    const marker = L.marker([lat,lng],{icon})
-                    .addTo(map)
-                    .bindPopup(`<b>${name}</b><br>${new Date(timestamp).toLocaleString('th-TH')}`);
-    friendMarkers.push({ id, marker });
-  }
-
-  // 5) Share & Save
-  async function shareAndSave() {
-    if (!meProfile) await initializeLiff();
-    if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
-    const [lat, lng] = myCoords;
-    const payload    = { name:meProfile.displayName, pictureUrl:meProfile.pictureUrl, lat, lng };
-
-    try {
-      $.LoadingOverlay("show");
-      const res  = await fetch(WEBAPP_URL, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain'},
-        body: JSON.stringify(payload)
-      });
-      const json = await res.json();
-      if (json.status !== 'success') throw json;
-      appendFriend({
-        id: json.id,
-        name: meProfile.displayName,
-        pictureUrl: meProfile.pictureUrl,
-        timestamp: new Date(),
-        lat, lng
-      });
-      Swal.fire('สำเร็จ!', 'แชร์พิกัดเรียบร้อย', 'success');
-    } catch (e) {
-      console.error('share failed', e);
-      Swal.fire('Error','บันทึกไม่สำเร็จ','error');
-    } finally {
-      $.LoadingOverlay("hide");
+    if (placeName) {
+        shareAndSave(placeName);
     }
   }
 
-  // 6) Share Flex message
+  // 6) Share Flex message
 async function shareTarget() {
-  if (!meProfile) await initializeLiff();
-  if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
-  const [lat, lng] = myCoords;
+  if (!meProfile) await initializeLiff();
+  if (!myCoords) return Swal.fire('Error','ยังไม่ระบุตำแหน่งของคุณ','warning');
+  const [lat, lng] = myCoords;
 
-  const flexMessage = {
-    type: 'flex',
-    altText: 'ตำแหน่งของฉัน',
-    contents: {
-      type: 'bubble',
-      hero: {
-        type: 'image',
-        url: meProfile.pictureUrl,
-        size: 'full',
-        aspectRatio: '1:1',
-        aspectMode: 'cover'
-      },
-      body: {
-        type: 'box',
-        layout: 'vertical',
-        contents: [
-          { type: 'text', text:`${meProfile.displayName} อยู่ที่นี่`, weight:'bold', size:'md', margin:'md' },
-          { type: 'text', text:`Latitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}`, wrap:true, margin:'sm' }
-        ]
-      },
-      footer: {
-        type: 'box',
-        layout: 'vertical',
-        spacing: 'sm',
-        contents: [
-          {
-            type:'button',
-            style:'primary',
-            action:{
-              type:'uri',
-              label:'นำทางไปยังตำแหน่งนี้',
-              // <-- omit origin so Maps uses your device location automatically
-              uri: `https://www.google.com/maps/dir/?api=1`
-                 + `&destination=${lat},${lng}`
-            }
-          }
-        ]
-      }
-    }
-  };
+  const flexMessage = {
+    type: 'flex',
+    altText: 'ตำแหน่งของฉัน',
+    contents: {
+      type: 'bubble',
+      hero: {
+        type: 'image',
+        url: meProfile.pictureUrl,
+        size: 'full',
+        aspectRatio: '1:1',
+        aspectMode: 'cover'
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          { type: 'text', text:`${meProfile.displayName} อยู่ที่นี่`, weight:'bold', size:'md', margin:'md' },
+          { type: 'text', text:`Latitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}`, wrap:true, margin:'sm' }
+        ]
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type:'button',
+            style:'primary',
+            action:{
+              type:'uri',
+              label:'นำทางไปยังตำแหน่งนี้',
+              // <-- omit origin so Maps uses your device location automatically
+              uri: `https://www.google.com/maps/dir/?api=1`
+                 + `&destination=${lat},${lng}`
+            }
+          }
+        ]
+      }
+    }
+  };
 
-  if (liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
-    try { await liff.shareTargetPicker([flexMessage]); return; }
-    catch (e) { console.warn(e); }
-  }
+  if (liff.isInClient() && liff.isApiAvailable('shareTargetPicker')) {
+    try { await liff.shareTargetPicker([flexMessage]); return; }
+    catch (e) { console.warn(e); }
+  }
 
-  // fallback
-  window.open(
-    `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(
-       `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-    )}`,
-    '_blank'
-  );
+  // fallback
+  window.open(
+    `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(
+       `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    )}`,
+    '_blank'
+  );
 }
 
 
-  // 7) DOM Ready
-  $(async () => {
-    await initializeLiff();
-    initMap();
-    $('#btn-share').click(shareAndSave);
-    $('#btn-picker').click(shareTarget);
-    $('#btn-refresh').click(initializeLiff);
-  });
+  // 7) DOM Ready
+  $(async () => {
+    await initializeLiff();
+    initMap();
+    // <!-- UPDATED 9: Changed the click event to call our new prompt function -->
+    $('#btn-share').click(promptForPlaceName);
+    $('#btn-picker').click(shareTarget);
+    $('#btn-refresh').click(initializeLiff);
+  });
 </script>
-    
-    <div class="w-full mt-4">
+    
+    <div class="w-full mt-4">
 <!-- Footer -->
 <footer class="bg-white border-t border-gray-200 py-4">
 <div class="container mx-auto px-4 text-center text-sm">
 <p>© <script>document.write(new Date().getFullYear());</script> Copyright | พัฒนาโดยครูสิทธิชาติ สิทธิ
-<a href="https://www.facebook.com/SanwithzWebapp" target="_blank"><i class="fa-brands fa-facebook  text-blue-500 hover:text-blue-700"></i></a>
+<a href="https://www.facebook.com/SanwithzWebapp" target="_blank"><i class="fa-brands fa-facebook  text-blue-500 hover:text-blue-700"></i></a>
 <a href="https://www.youtube.com/@Sanwithz" target="_blank"><i class="fa-brands fa-youtube text-red-500 hover:text-red-700"></i></a></p>
 </div>
 </footer>
 </div>
-    
+    
 </body>
 </html>
