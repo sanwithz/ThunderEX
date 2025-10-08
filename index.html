@@ -182,28 +182,31 @@
     }
   }
 
-  // 4) Append friend to list & map
-  // <!-- UPDATED 1: Added 'placeName' to the function parameters -->
+   // 4) Append friend to list & map
   function appendFriend({ id, name, pictureUrl, timestamp, lat, lng, placeName }) {
     const $list = $('.friend-list');
-    // <!-- UPDATED 2: Use the custom placeName if it exists, otherwise use the user's name -->
     const displayName = placeName || name;
     const $item = $(`
-      <div class="friend-item" data-id="${id}">
-        <div class="friend-avatar" style="background-image:url('${pictureUrl}')"></div>
-        <div class="friend-info">
-          <!-- UPDATED 3: Display the location name and who shared it -->
-          <div class="friend-name">${displayName}</div>
-          ${placeName ? `<div class="text-xs text-gray-500 -mt-1">แชร์โดย: ${name}</div>` : ''}
-          <div class="friend-time">${new Date(timestamp).toLocaleString('th-TH')}</div>
-        </div>
-        <button class="navigate-btn text-sm">
-          <i class="fas fa-map-marker-alt"></i> นำทาง
-        </button>
-        <button class="delete-btn text-sm bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded ml-2">
-          <i class="fas fa-trash-alt"></i> ลบ
-        </button>
-      </div>
+      <div class="friend-item" data-id="${id}">
+        <div class="flex items-center flex-grow w-full gap-4">
+          <div class="friend-avatar" style="background-image:url('${pictureUrl}')"></div>
+          <div class="friend-info">
+            <div class="friend-name">${displayName}</div>
+            ${placeName ? `<div class="friend-sub-info"><i class="fas fa-user opacity-75"></i><span>แชร์โดย: ${name}</span></div>` : ''}
+            <div class="friend-sub-info"><i class="fas fa-clock opacity-75"></i><span>${new Date(timestamp).toLocaleString('th-TH')}</span></div>
+          </div>
+        </div>
+        <div class="friend-actions">
+          <button class="navigate-btn" title="นำทาง">
+            <i class="fas fa-directions"></i>
+            <span>นำทาง</span>
+          </button>
+          <button class="delete-btn" title="ลบ">
+            <i class="fas fa-trash-alt"></i>
+            <span>ลบ</span>
+          </button>
+        </div>
+      </div>
     `);
     $list.prepend($item);
 
@@ -220,7 +223,6 @@
     // Delete
     $item.find('.delete-btn').click(async () => {
       const result = await Swal.fire({
-        // <!-- UPDATED 4: Show the correct name in the delete confirmation -->
         title: `ลบ ${displayName}?`,
         icon: 'warning',
         showCancelButton: true,
@@ -260,7 +262,6 @@
     const icon   = L.icon({ iconUrl:pictureUrl, iconSize:[40,40], iconAnchor:[20,20], className:'friend-marker' });
     const marker = L.marker([lat,lng],{icon})
                     .addTo(map)
-                    // <!-- UPDATED 5: Update the map pin popup -->
                     .bindPopup(`<b>${displayName}</b><br>${placeName ? `แชร์โดย: ${name}<br>` : ''}${new Date(timestamp).toLocaleString('th-TH')}`);
     friendMarkers.push({ id, marker });
   }
